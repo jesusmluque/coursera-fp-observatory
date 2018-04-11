@@ -63,29 +63,24 @@ object Visualization {
       (-50D, Color(33,0,107)),
       (-60D, Color(0,0,0)))
 
-    val grouped = points.groupBy[Int] { (temp) =>
-      getTempRange(temp._1)
+    def findClosed(sortedList:List[(Temperature, Color)], value: Temperature): ((Temperature, Color), Temperature, (Temperature, Color)) = {
+      sortedList match {
+        case (x :: y :: _) if y._1 > value => (x, value, y)
+        case (x :: _) if x._1 > value => ((getTempRange(value), threshold(getTempRange(value))), value, x)
+        case (x :: xs) if x._1 < value =>  findClosed(xs, value)
+        case (x :: Nil) if x._1 < value => (x, value, (getTempRange(value), threshold(getTempRange(value))))
+      }
     }
-    val valueRange = getTempRange(value)
-    val orderedRange = grouped.getOrElse(valueRange, List((valueRange.toDouble, threshold(valueRange.toDouble)))).toList.sortBy(_._1)
-    val minMaxRanges = orderedRange.groupBy[String] { t =>
-      if (t._1 < value)
-        "min"
-      else
-        "max"
-    }
-    val v1 = minMaxRanges.getOrElse("max", List((getTempRange(value).toDouble, threshold(getTempRange(value).toDouble)))).minBy(_._1)
-    val v0 = minMaxRanges.getOrElse("min", List((getTempRange(value).toDouble, threshold(getTempRange(value).toDouble)))).maxBy(_._1)
+    val (v0, _, v1) = findClosed(points.toList.sortBy(_._1), value)
 
     def getNewColorComponent(v0color: Int, v1color: Int) = {
-      ((v0color * (v1._1 - value) + v1color * (value - v0._1)) / (v1._1 - v0._1)).toInt
+      ((v0color * (v1._1 - value) + v1color * (value - v0._1)) / (v1._1 - v0._1)).round.toInt
     }
 
     Color(
       getNewColorComponent(v0._2.red, v1._2.red),
       getNewColorComponent(v0._2.green, v1._2.green),
       getNewColorComponent(v0._2.blue, v1._2.blue))
-
   }
 
   /**

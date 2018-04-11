@@ -23,7 +23,7 @@ trait VisualizationTest extends FunSuite with Checkers {
   }
   test("interpolate a value in range 32") {
     assert(Visualization.interpolateColor(List((31D,Color(254,0,0)), (12D,Color(255,255,0))), 20D) ==
-      Color(254, 147, 0))
+      Color(255, 148, 0))
 
   }
 }
